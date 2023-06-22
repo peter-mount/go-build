@@ -1,6 +1,7 @@
 package build
 
 import (
+	"errors"
 	"fmt"
 	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util/arch"
@@ -78,6 +79,10 @@ func (s *Build) getTools() ([]string, error) {
 		IsFile().
 		Walk("tools"); err != nil {
 		return nil, err
+	}
+
+	if len(tools) == 0 {
+		return nil, errors.New("no tools to compile")
 	}
 
 	sort.SliceStable(tools, func(i, j int) bool {

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"flag"
 	"github.com/peter-mount/go-build/core"
+	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"io"
@@ -36,7 +37,7 @@ func (s *Tar) Start() error {
 }
 
 func (s *Tar) tar(archive, dir string) error {
-	label("DIST TAR", "%s %s", archive, dir)
+	util.Label("DIST TAR", "%s %s", archive, dir)
 
 	f, err := os.Create(archive)
 	if err != nil {

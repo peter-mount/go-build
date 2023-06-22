@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/peter-mount/go-build/core"
+	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"io"
 	"os"
@@ -34,8 +35,8 @@ func (s *Go) run() error {
 		return s.build()
 
 	case "clean":
-		label("GO CLEAN", "-testcache")
-		return s.cmd("go", "clean", "-testcache")
+		util.Label("GO CLEAN", "-testcache")
+		return util.RunCommand("go", "clean", "-testcache")
 
 	case "test":
 		return s.test()
@@ -43,20 +44,6 @@ func (s *Go) run() error {
 	default:
 		return fmt.Errorf("unknown GO command %q", *s.Go)
 	}
-}
-
-func label(label, f string, a ...any) {
-	fmt.Printf("%-8s ", label)
-	fmt.Printf(f, a...)
-	fmt.Println()
-}
-
-func (s *Go) cmd(name string, a ...string) error {
-	cmd := exec.Command(name, a...)
-	cmd.Stdout = os.Stdout
-	cmd.Stdin = os.Stdin
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
 }
 
 func (s *Go) build() error {
@@ -81,7 +68,7 @@ func getEnv(k string) string {
 func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 	src := filepath.Join("tools", tool, "bin/main.go")
 	dst := filepath.Join(*s.Encoder.Dest, goos, goarch+goarm, "bin", tool)
-	label("GO BUILD", dst)
+	util.Label("GO BUILD", dst)
 
 	// Windows needs a file extension, legacy of MSDos and CP/M before that
 	if goos == "windows" {
@@ -159,7 +146,7 @@ func (s *Go) test() error {
 		log.Println(cmd.String())
 	}
 
-	label("GO TEST", testOut)
+	util.Label("GO TEST", testOut)
 
 	err = cmd.Run()
 	if exit, ok := err.(*exec.ExitError); ok {

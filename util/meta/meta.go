@@ -3,6 +3,7 @@ package meta
 import (
 	"bytes"
 	"errors"
+	"github.com/peter-mount/go-build/util"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -99,6 +100,13 @@ func (m *Meta) getVersion() error {
 	if m.Version == "" {
 		s, err := runCmd("git", "describe", "--tags", "--always", "--dirty", "--match=v*")
 		if err != nil {
+			if exit, ok := err.(*exec.ExitError); ok {
+				if exit.ExitCode() == 128 {
+					util.Label("WARNING", "Unable to get version from git, no repo or no commit?")
+					m.Version = "unknown"
+					return nil
+				}
+			}
 			return err
 		}
 		m.Version = strings.ReplaceAll(s, "-", ".")

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"flag"
 	"github.com/peter-mount/go-build/core"
+	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"os"
@@ -31,7 +32,7 @@ func (s *Zip) Start() error {
 }
 
 func (s *Zip) zip(archive, dir string) error {
-	label("DIST ZIP", "%s %s", archive, dir)
+	util.Label("DIST ZIP", "%s %s", archive, dir)
 
 	f, err := os.Create(archive)
 	if err != nil {
