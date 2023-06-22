@@ -278,13 +278,19 @@ func (s *Build) platformIndex(arches []arch.Arch) error {
 		"| ---------------- | ----------------- |",
 	)
 
+	osCount := 0
+	cpuCount := make(map[string]bool)
+
 	larch := ""
 	for _, arch := range arches {
+		cpuCount[arch.Arch()] = true
+
 		if arch.GOOS != larch {
 			larch = arch.GOOS
 
 			var as []string
 			as = append(as, "|", larch, "|")
+			osCount++
 			for _, arch2 := range arches {
 				if arch2.GOOS == larch {
 					as = append(as, arch2.GOARCH+arch2.GOARM)
@@ -295,7 +301,11 @@ func (s *Build) platformIndex(arches []arch.Arch) error {
 		}
 	}
 
-	a = append(a, "")
+	a = append(a,
+		"",
+		fmt.Sprintf("Operating Systems %d CPU's %d", osCount, len(cpuCount)),
+		"")
+
 	return os.WriteFile("platforms.md", []byte(strings.Join(a, "\n")), 0644)
 }
 
