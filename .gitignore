@@ -1,0 +1,22 @@
+# Reference files
+# vim temporary files
+*~
+*.sw?
+
+# system files
+.DS_Store
+
+go.sum
+
+# IDE files
+.idea
+.vscode
+/go_build_main_go
+
+/config.yaml
+/mastodon.yml
+/build*
+/tmp/
+/dist/
+/a.png
+/Makefile.gen
