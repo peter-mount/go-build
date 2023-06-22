@@ -11,12 +11,8 @@ go.sum
 # IDE files
 .idea
 .vscode
-/go_build_main_go
 
-/config.yaml
-/mastodon.yml
-/build*
-/tmp/
+/build
+/builds/
 /dist/
-/a.png
 /Makefile.gen
