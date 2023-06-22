@@ -1,9 +1,8 @@
-package build
+package core
 
 import (
 	"errors"
 	"fmt"
-	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util/arch"
 	"github.com/peter-mount/go-build/util/jenkinsfile"
 	"github.com/peter-mount/go-build/util/makefile"
@@ -16,10 +15,10 @@ import (
 )
 
 type Build struct {
-	Encoder      *core.Encoder `kernel:"inject"`
-	Dest         *string       `kernel:"flag,build,generate build files"`
-	Platforms    *string       `kernel:"flag,build-platform,platform(s) to build"`
-	Dist         *string       `kernel:"flag,dist,distribution destination"`
+	Encoder      *Encoder `kernel:"inject"`
+	Dest         *string  `kernel:"flag,build,generate build files"`
+	Platforms    *string  `kernel:"flag,build-platform,platform(s) to build"`
+	Dist         *string  `kernel:"flag,dist,distribution destination"`
 	libProviders []LibProvider
 }
 

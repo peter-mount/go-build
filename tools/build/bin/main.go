@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/peter-mount/go-build/tools/build"
+	_ "github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-kernel/v2"
 	"os"
 )

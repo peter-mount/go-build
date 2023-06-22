@@ -1,11 +1,10 @@
-package build
+package core
 
 import (
 	"bytes"
 	"errors"
 	"flag"
 	"fmt"
-	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"io"
@@ -17,9 +16,9 @@ import (
 )
 
 type Go struct {
-	Encoder   *core.Encoder `kernel:"inject"`
-	Go        *string       `kernel:"flag,go,call GO"`
-	FailTests *bool         `kernel:"flag,go-test-fail,on test failure abort the build"`
+	Encoder   *Encoder `kernel:"inject"`
+	Go        *string  `kernel:"flag,go,call GO"`
+	FailTests *bool    `kernel:"flag,go-test-fail,on test failure abort the build"`
 }
 
 func (s *Go) Start() error {

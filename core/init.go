@@ -1,4 +1,4 @@
-package build
+package core
 
 import "github.com/peter-mount/go-kernel/v2"
 

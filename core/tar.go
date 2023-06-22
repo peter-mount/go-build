@@ -1,11 +1,10 @@
-package build
+package core
 
 import (
 	"archive/tar"
 	"compress/gzip"
 	"errors"
 	"flag"
-	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
@@ -18,8 +17,8 @@ import (
 )
 
 type Tar struct {
-	Encoder *core.Encoder `kernel:"inject"`
-	Tar     *bool         `kernel:"flag,tar,tar"`
+	Encoder *Encoder `kernel:"inject"`
+	Tar     *bool    `kernel:"flag,tar,tar"`
 }
 
 func (s *Tar) Start() error {

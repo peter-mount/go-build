@@ -1,10 +1,9 @@
-package build
+package core
 
 import (
 	"archive/zip"
 	"errors"
 	"flag"
-	"github.com/peter-mount/go-build/core"
 	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
@@ -13,8 +12,8 @@ import (
 )
 
 type Zip struct {
-	Encoder *core.Encoder `kernel:"inject"`
-	Zip     *bool         `kernel:"flag,zip,zip"`
+	Encoder *Encoder `kernel:"inject"`
+	Zip     *bool    `kernel:"flag,zip,zip"`
 }
 
 func (s *Zip) Start() error {
