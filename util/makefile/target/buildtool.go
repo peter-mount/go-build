@@ -27,7 +27,7 @@ func (b *builder) BuildTool(label, flag string, args ...string) Builder {
 }
 
 func (bt *buildTool) Build(b makefile.Builder) makefile.Builder {
-	b.Echo(bt.label, "%s %s", bt.flag, bt.parent.Target()).
+	b.Echo(bt.label, bt.parent.Target()).
 		Line("$(BUILD) %s %s",
 			bt.flag,
 			strings.Join(bt.args, " "))
