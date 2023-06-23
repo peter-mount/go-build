@@ -17,6 +17,9 @@ type Builder interface {
 
 	// BuildTool adds a call to the build tool to the Target
 	BuildTool(label, flag string, args ...string) Builder
+
+	// MkDir -p
+	MkDir(path string) Builder
 }
 
 type builder struct {
