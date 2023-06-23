@@ -45,7 +45,7 @@ func Test_builder_BuildTool(t *testing.T) {
 				target:   tt.fields.target,
 				children: tt.fields.children,
 			}
-			if got := b.BuildTool(tt.args.flag, tt.args.args...); !reflect.DeepEqual(got, tt.want) {
+			if got := b.BuildTool("TEST", tt.args.flag, tt.args.args...); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("BuildTool() = %v, want %v", got, tt.want)
 			}
 		})
