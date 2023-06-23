@@ -16,7 +16,7 @@ type Builder interface {
 	GetTarget() *Target
 
 	// BuildTool adds a call to the build tool to the Target
-	BuildTool(flag string, args ...string) Builder
+	BuildTool(label, flag string, args ...string) Builder
 }
 
 type builder struct {
