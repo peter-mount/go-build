@@ -7,6 +7,7 @@ func init() {
 	// present to all projects using the build environment
 	kernel.Register(
 		&Build{},
+		&Copy{},
 		&Go{},
 		&Tar{},
 		&Zip{},
