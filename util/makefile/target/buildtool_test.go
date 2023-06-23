@@ -12,6 +12,8 @@ func Test_buildTool_Build(t *testing.T) {
 	got := New().
 		Target("builds/test").
 		BuildTool("-test", "arg1", "arg2").
+		Target("builds/dependency").
+		BuildTool("-copy", "arg1", "arg2").
 		Build(makefile.New()).
 		Build()
 

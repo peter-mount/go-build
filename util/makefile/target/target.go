@@ -42,7 +42,7 @@ func (t *Target) Build(b makefile.Builder) makefile.Builder {
 		r.AddDependency(c.Target())
 	}
 
-	return b
+	return r
 }
 
 func (b *builder) Target(target string, dependencies ...string) Builder {

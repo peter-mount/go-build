@@ -36,22 +36,24 @@ func (b *builder) Build(builder makefile.Builder) makefile.Builder {
 		root = root.parent
 	}
 
-	// Process the child builders. This is only valid for the root
-	// as it's the only one with no target
-	for _, c := range root.children {
-		_ = makefile.Of(c.target.Build).Do(builder)
+	return root.build(builder)
+}
+
+func (b *builder) build(builder makefile.Builder) makefile.Builder {
+	if b.target != nil {
+		builder = makefile.Of(b.target.Build).Do(builder)
 	}
+
+	for _, c := range b.children {
+		_ = c.build(builder)
+	}
+
 	return builder
 }
 
 func (b *builder) add(target *Target) Builder {
 	c := &builder{parent: b, target: target}
-
-	// Only the root builder has children
-	if b.parent == nil {
-		b.children = append(b.children, c)
-	}
-
+	b.children = append(b.children, c)
 	return c
 }
 
