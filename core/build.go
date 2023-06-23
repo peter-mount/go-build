@@ -6,6 +6,7 @@ import (
 	"github.com/peter-mount/go-build/util/arch"
 	"github.com/peter-mount/go-build/util/jenkinsfile"
 	"github.com/peter-mount/go-build/util/makefile"
+	"github.com/peter-mount/go-build/util/makefile/target"
 	"github.com/peter-mount/go-build/util/meta"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"os"
@@ -15,17 +16,20 @@ import (
 )
 
 type Build struct {
-	Encoder      *Encoder `kernel:"inject"`
-	Dest         *string  `kernel:"flag,build,generate build files"`
-	Platforms    *string  `kernel:"flag,build-platform,platform(s) to build"`
-	Dist         *string  `kernel:"flag,dist,distribution destination"`
-	libProviders []LibProvider
+	Encoder      *Encoder      `kernel:"inject"`
+	Dest         *string       `kernel:"flag,build,generate build files"`
+	Platforms    *string       `kernel:"flag,build-platform,platform(s) to build"`
+	Dist         *string       `kernel:"flag,dist,distribution destination"`
+	libProviders []LibProvider // Deprecated
+	extensions   Extension
 }
 
 // LibProvider handles calls to generate additional files/directories in a build
 // returns destPath and arguments to pass
+// Deprecated
 type LibProvider func(builds string) (string, []string)
 
+// AddLibProvider Deprecated
 func (s *Build) AddLibProvider(p LibProvider) {
 	s.libProviders = append(s.libProviders, p)
 }
@@ -111,20 +115,25 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 	targetGroups := s.targetGroups(arches, root)
 
 	for _, arch := range arches {
-		target := targetGroups.Get(arch.Target())
+		archTarget := targetGroups.Get(arch.Target())
 
 		for _, tool := range tools {
-			s.goBuild(arch, target, tool, meta)
+			s.goBuild(arch, archTarget, tool, meta)
 		}
 
+		// Apply extensions
+		targetBuilder := target.New()
+		s.extensions.Do(arch, targetBuilder, meta)
+		targetBuilder.Build(archTarget)
+
 		for _, p := range s.libProviders {
-			s.libProvider(arch, target, p, meta)
+			s.libProvider(arch, archTarget, p, meta)
 		}
 
 		if arch.IsWindows() {
-			s.zip(arch, target, meta)
+			s.zip(arch, archTarget, meta)
 		} else {
-			s.tar(arch, target, meta)
+			s.tar(arch, archTarget, meta)
 		}
 	}
 

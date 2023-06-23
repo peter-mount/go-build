@@ -26,6 +26,7 @@ type Builder interface {
 	Build() string
 
 	AddDependency(...string) Builder
+	Add(Handler) Builder
 
 	IsBlank() bool
 	IsBlock() bool
@@ -35,6 +36,55 @@ type Builder interface {
 	IsRule() bool
 	IsEmptyRule() bool
 	NumTargets() int
+}
+
+// Handler is a function that can add to a Builder
+type Handler func(Builder) Builder
+
+// Of creates a Handler
+func Of(handlers ...Handler) Handler {
+	var r Handler
+	for _, h := range handlers {
+		r = r.Then(h)
+	}
+	return r
+}
+
+// Then creates a handler that weill invoke this one then a second
+// with the same builder. The builder is returned unchanged.
+func (a Handler) Then(b Handler) Handler {
+	if a == nil {
+		return b
+	}
+	if b == nil {
+		return a
+	}
+	return func(builder Builder) Builder {
+		_ = a(builder)
+		_ = b(builder)
+		return builder
+	}
+}
+
+// Chain a handler so that this Handler is invoked, and then it's returned builder is passed to b
+func (a Handler) Chain(b Handler) Handler {
+	if a == nil {
+		return b
+	}
+	if b == nil {
+		return a
+	}
+	return func(builder Builder) Builder {
+		return b(a(builder))
+	}
+}
+
+// Do invokes this Handler. If this Handler is nil then the builder is returned as-is
+func (a Handler) Do(builder Builder) Builder {
+	if a != nil {
+		return a(builder)
+	}
+	return builder
 }
 
 type builder struct {
@@ -50,6 +100,13 @@ type builder struct {
 
 func New() Builder {
 	return &builder{}
+}
+
+func (b *builder) Add(h Handler) Builder {
+	if h != nil {
+		_ = h(b)
+	}
+	return b
 }
 
 func (b *builder) Blank() Builder {
