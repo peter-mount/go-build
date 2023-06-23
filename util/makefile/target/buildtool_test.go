@@ -15,6 +15,7 @@ func Test_buildTool_Build(t *testing.T) {
 		MkDir("/tmp/some/path").
 		BuildTool("-copy", "arg1", "arg2").
 		Build(makefile.New()).
+		Echo("label", "format %q", "Arg").
 		Build()
 
 	fmt.Println(got)

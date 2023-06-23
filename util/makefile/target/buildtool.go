@@ -12,13 +12,9 @@ type buildTool struct {
 	args   []string // Arguments when BuildFlag is in use
 }
 
-func (b *builder) BuildTool(label, flag string, args ...string) Builder {
-	if label == "" {
-		label = "BUILD"
-	}
+func (b *builder) BuildTool(flag string, args ...string) Builder {
 	t := buildTool{
 		parent: b.target,
-		label:  label,
 		flag:   flag,
 		args:   args,
 	}
@@ -27,9 +23,8 @@ func (b *builder) BuildTool(label, flag string, args ...string) Builder {
 }
 
 func (bt *buildTool) Build(b makefile.Builder) makefile.Builder {
-	b.Echo(bt.label, bt.parent.Target()).
-		Line("$(BUILD) %s %s",
-			bt.flag,
-			strings.Join(bt.args, " "))
+	b.Line("$(BUILD) %s %s",
+		bt.flag,
+		strings.Join(bt.args, " "))
 	return b
 }
