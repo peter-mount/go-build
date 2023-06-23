@@ -9,6 +9,7 @@ func init() {
 		&Build{},
 		&Copy{},
 		&Go{},
+		&GZip{},
 		&Tar{},
 		&Zip{},
 	)
