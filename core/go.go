@@ -67,12 +67,13 @@ func getEnv(k string) string {
 func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 	src := filepath.Join("tools", tool, "bin/main.go")
 	dst := filepath.Join(*s.Encoder.Dest, goos, goarch+goarm, "bin", tool)
-	util.Label("GO BUILD", dst)
 
 	// Windows needs a file extension, legacy of MSDos and CP/M before that
 	if goos == "windows" {
 		dst = dst + ".exe"
 	}
+
+	util.Label("GO BUILD", dst)
 
 	// The os environment then add our vars
 	env := append([]string{}, os.Environ()...)
