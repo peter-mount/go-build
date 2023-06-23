@@ -8,6 +8,8 @@ import (
 	"github.com/peter-mount/go-build/util/makefile"
 	"github.com/peter-mount/go-build/util/makefile/target"
 	"github.com/peter-mount/go-build/util/meta"
+	"github.com/peter-mount/go-build/version"
+	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"os"
 	"path/filepath"
@@ -35,6 +37,10 @@ func (s *Build) AddLibProvider(p LibProvider) {
 }
 
 func (s *Build) Run() error {
+	if log.IsVerbose() {
+		log.Println(version.Version)
+	}
+
 	if *s.Dest != "" {
 		meta, err := meta.New()
 		if err != nil {

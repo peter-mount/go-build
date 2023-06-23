@@ -16,4 +16,4 @@ The following platforms are supported by virtue of how the build system works:
 | solaris | amd64 |
 | windows | 386 amd64 arm6 arm7 arm64 |
 
-Operating Systems 11 CPU's 0
+Operating Systems 11 CPU's 14
