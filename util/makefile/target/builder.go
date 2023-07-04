@@ -4,6 +4,7 @@ import "github.com/peter-mount/go-build/util/makefile"
 
 type Builder interface {
 	New() Builder
+	Link(t *Target) Builder
 
 	// Build the Target's
 	Build(makefile.Builder) makefile.Builder
@@ -30,6 +31,7 @@ type builder struct {
 	parent   *builder   // Parent
 	target   *Target    // Target built
 	children []*builder // Child builders
+	linked   []*Target  // Linked targets
 }
 
 func New() Builder {
@@ -59,7 +61,16 @@ func (b *builder) build(builder makefile.Builder) makefile.Builder {
 		_ = c.build(builder)
 	}
 
+	for _, t := range b.linked {
+		builder.AddDependency(t.target)
+	}
+
 	return builder
+}
+
+func (b *builder) Link(t *Target) Builder {
+	b.linked = append(b.linked, t)
+	return b
 }
 
 func (b *builder) add(target *Target) Builder {
