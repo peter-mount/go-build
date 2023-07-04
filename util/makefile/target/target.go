@@ -51,3 +51,23 @@ func (b *builder) Target(target string, dependencies ...string) Builder {
 		dependencies: dependencies,
 	})
 }
+
+func (b *builder) GetNamedTarget(target string) *Target {
+	r := b
+	for r.parent != nil {
+		r = r.parent
+	}
+	return r.getNamedTarget(target)
+}
+
+func (b *builder) getNamedTarget(target string) *Target {
+	if b.target != nil && b.target.target == target {
+		return b.target
+	}
+	for _, c := range b.children {
+		if t := c.getNamedTarget(target); t != nil {
+			return t
+		}
+	}
+	return nil
+}

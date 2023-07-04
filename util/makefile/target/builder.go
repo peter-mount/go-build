@@ -15,6 +15,9 @@ type Builder interface {
 	// GetTarget returns the current Target
 	GetTarget() *Target
 
+	// GetNamedTarget returns the specified target or nil if not found
+	GetNamedTarget(target string) *Target
+
 	BuildTool(flag string, args ...string) Builder
 	Echo(label, format string, args ...any) Builder
 	Line(format string, args ...any) Builder
