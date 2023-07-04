@@ -18,12 +18,13 @@ import (
 )
 
 type Build struct {
-	Encoder      *Encoder      `kernel:"inject"`
-	Dest         *string       `kernel:"flag,build,generate build files"`
-	Platforms    *string       `kernel:"flag,build-platform,platform(s) to build"`
-	Dist         *string       `kernel:"flag,dist,distribution destination"`
-	libProviders []LibProvider // Deprecated
-	extensions   Extension
+	Encoder          *Encoder         `kernel:"inject"`
+	Dest             *string          `kernel:"flag,build,generate build files"`
+	Platforms        *string          `kernel:"flag,build-platform,platform(s) to build"`
+	Dist             *string          `kernel:"flag,dist,distribution destination"`
+	libProviders     []LibProvider    // Deprecated
+	extensions       Extension        // Extensions to run
+	cleanDirectories sort.StringSlice // Directories to clean other than builds and dist
 }
 
 // LibProvider handles calls to generate additional files/directories in a build
@@ -34,6 +35,23 @@ type LibProvider func(builds string) (string, []string)
 // AddLibProvider Deprecated
 func (s *Build) AddLibProvider(p LibProvider) {
 	s.libProviders = append(s.libProviders, p)
+}
+
+func (s *Build) AddCleanDirectory(dir string) {
+	for _, d := range s.cleanDirectories {
+		if d == dir {
+			return
+		}
+	}
+	s.cleanDirectories = append(s.cleanDirectories, dir)
+	s.cleanDirectories.Sort()
+}
+
+func (s *Build) Start() error {
+	// Set the clean directory list to include our defaults
+	s.AddCleanDirectory(*s.Encoder.Dest)
+	s.AddCleanDirectory(*s.Dist)
+	return nil
 }
 
 func (s *Build) Run() error {
@@ -220,7 +238,7 @@ func (s *Build) callBuilder(builder makefile.Builder, action, cmd string, args .
 
 func (s *Build) clean(builder makefile.Builder) {
 	rule := builder.Rule("clean").
-		RM(*s.Encoder.Dest, *s.Dist)
+		RM(s.cleanDirectories...)
 	s.callBuilder(rule, "go", "clean", "--", "-testcache")
 }
 
