@@ -138,6 +138,9 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 
 	targetGroups := s.targetGroups(arches, root)
 
+	// Used for name searching
+	rootTarget := target.New()
+
 	for _, arch := range arches {
 		archTarget := targetGroups.Get(arch.Target())
 
@@ -146,7 +149,7 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 		}
 
 		// Apply extensions
-		targetBuilder := target.New()
+		targetBuilder := rootTarget.New()
 		s.extensions.Do(arch, targetBuilder, meta)
 		targetBuilder.Build(archTarget)
 

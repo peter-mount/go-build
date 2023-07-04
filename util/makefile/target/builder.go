@@ -3,6 +3,8 @@ package target
 import "github.com/peter-mount/go-build/util/makefile"
 
 type Builder interface {
+	New() Builder
+
 	// Build the Target's
 	Build(makefile.Builder) makefile.Builder
 
@@ -34,12 +36,16 @@ func New() Builder {
 	return &builder{}
 }
 
+func (b *builder) New() Builder {
+	return b.add(nil)
+}
+
 func (b *builder) Build(builder makefile.Builder) makefile.Builder {
 	// Find the root
 	root := b
-	for root.parent != nil {
-		root = root.parent
-	}
+	//for root.parent != nil {
+	//	root = root.parent
+	//}
 
 	return root.build(builder)
 }
