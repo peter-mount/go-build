@@ -134,33 +134,37 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 	s.clean(builder)
 	s.test(builder)
 
-	root := s.allRule(arches, builder)
+	root, platforms := s.allRule(arches, builder)
+	allPlatforms := len(platforms) == 0
 
-	targetGroups := s.targetGroups(arches, root)
+	targetGroups := s.targetGroups(arches, root, platforms)
 
 	// Used for name searching
 	rootTarget := target.New()
 
 	for _, arch := range arches {
 		archTarget := targetGroups.Get(arch.Target())
+		// Generate targets if all platforms or just the requested ones
+		if allPlatforms || platforms[arch.Target()] {
 
-		for _, tool := range tools {
-			s.goBuild(arch, archTarget, tool, meta)
-		}
+			for _, tool := range tools {
+				s.goBuild(arch, archTarget, tool, meta)
+			}
 
-		// Apply extensions
-		targetBuilder := rootTarget.New()
-		s.extensions.Do(arch, targetBuilder, meta)
-		targetBuilder.Build(archTarget)
+			// Apply extensions
+			targetBuilder := rootTarget.New()
+			s.extensions.Do(arch, targetBuilder, meta)
+			targetBuilder.Build(archTarget)
 
-		for _, p := range s.libProviders {
-			s.libProvider(arch, archTarget, p, meta)
-		}
+			for _, p := range s.libProviders {
+				s.libProvider(arch, archTarget, p, meta)
+			}
 
-		if arch.IsWindows() {
-			s.zip(arch, archTarget, meta)
-		} else {
-			s.tar(arch, archTarget, meta)
+			if arch.IsWindows() {
+				s.zip(arch, archTarget, meta)
+			} else {
+				s.tar(arch, archTarget, meta)
+			}
 		}
 	}
 
@@ -171,8 +175,9 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 	return os.WriteFile(*s.Dest, []byte(builder.Build()), 0644)
 }
 
-func (s *Build) allRule(arches []arch.Arch, builder makefile.Builder) makefile.Builder {
+func (s *Build) allRule(arches []arch.Arch, builder makefile.Builder) (makefile.Builder, map[string]bool) {
 	all := builder.Rule("all")
+	platforms := make(map[string]bool)
 
 	// Generate all target with either all or subset of platforms
 	if *s.Platforms != "" {
@@ -181,6 +186,7 @@ func (s *Build) allRule(arches []arch.Arch, builder makefile.Builder) makefile.B
 			for _, plat := range plats {
 				if strings.TrimSpace(plat) == arch.Platform() {
 					all.AddDependency(arch.Target())
+					platforms[arch.Target()] = true
 				}
 			}
 		}
@@ -189,41 +195,47 @@ func (s *Build) allRule(arches []arch.Arch, builder makefile.Builder) makefile.B
 	// If all is still empty then return it so the Operating System rules
 	// will get added to it automatically
 	if all.IsEmptyRule() {
-		return all
+		return all, platforms
 	}
 
 	// All is not empty so return the original builder
-	return builder
+	return builder, platforms
 }
 
-func (s *Build) targetGroups(arches []arch.Arch, builder makefile.Builder) makefile.Map {
+func (s *Build) targetGroups(arches []arch.Arch, builder makefile.Builder, platforms map[string]bool) makefile.Map {
 	osGroups := makefile.NewMap(builder)
 	targetGroups := makefile.NewMap(builder)
+	allPlatforms := len(platforms) == 0
 
 	for _, arch := range arches {
-		goos := arch.GOOS
-		if !osGroups.Contains(goos) {
-			osGroups.Add(goos, func(builder makefile.Builder) makefile.Builder {
-				return builder.Block().
-					Blank().
-					Comment("==================").
-					Comment(goos).
-					Comment("==================").
-					Rule(goos, "init")
-			})
-		}
+		// Generate if all platforms or the platform exists
+		if allPlatforms || platforms[arch.Target()] {
 
-		target := arch.Target()
-		if !targetGroups.Contains(target) {
-			targetGroups.Add(target, func(_ makefile.Builder) makefile.Builder {
-				return osGroups.Get(goos).
-					Block().
-					Blank().
-					Comment("------------------").
-					Comment("%s %s", arch.GOOS, arch.Arch()).
-					Comment("------------------").
-					Rule(target, "init")
-			})
+			goos := arch.GOOS
+			if !osGroups.Contains(goos) {
+				osGroups.Add(goos, func(builder makefile.Builder) makefile.Builder {
+					return builder.Block().
+						//Blank().
+						//Comment("==================").
+						//Comment(goos).
+						//Comment("==================").
+						Rule(goos, "init")
+				})
+			}
+
+			target := arch.Target()
+			if !targetGroups.Contains(target) {
+				targetGroups.Add(target, func(_ makefile.Builder) makefile.Builder {
+					return osGroups.Get(goos).
+						Block().
+						//Blank().
+						//Comment("------------------").
+						//Comment("%s %s", arch.GOOS, arch.Arch()).
+						//Comment("------------------").
+						Rule(target, "init")
+				})
+			}
+
 		}
 	}
 
