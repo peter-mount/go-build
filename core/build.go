@@ -147,23 +147,28 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 		// Generate targets if all platforms or just the requested ones
 		if allPlatforms || platforms[arch.Target()] {
 
+			// Put all tools under their own target
+			toolTarget := archTarget.Rule(arch.Target() + "_tools")
 			for _, tool := range tools {
-				s.goBuild(arch, archTarget, tool, meta)
+				s.goBuild(arch, toolTarget, tool, meta)
 			}
 
 			// Apply extensions
+			extTarget := archTarget.Rule(arch.Target() + "_ext")
 			targetBuilder := rootTarget.New()
 			s.extensions.Do(arch, targetBuilder, meta)
-			targetBuilder.Build(archTarget)
+			targetBuilder.Build(extTarget)
 
 			for _, p := range s.libProviders {
-				s.libProvider(arch, archTarget, p, meta)
+				s.libProvider(arch, extTarget, p, meta)
 			}
 
+			// Put dist under its own target
+			distTarget := archTarget.Rule(arch.Target() + "_dist")
 			if arch.IsWindows() {
-				s.zip(arch, archTarget, meta)
+				s.zip(arch, distTarget, meta)
 			} else {
-				s.tar(arch, archTarget, meta)
+				s.tar(arch, distTarget, meta)
 			}
 		}
 	}
