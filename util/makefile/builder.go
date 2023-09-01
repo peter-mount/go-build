@@ -257,8 +257,10 @@ func (b *builder) AddDependency(dependencies ...string) Builder {
 
 	// Add new ones only if they are not already present
 	for _, dep := range dependencies {
-		if _, ok := m[dep]; !ok {
-			deps = append(deps, dep)
+		if !strings.HasPrefix(dep, ".") {
+			if _, ok := m[dep]; !ok {
+				deps = append(deps, dep)
+			}
 		}
 	}
 
