@@ -250,7 +250,9 @@ func (b *builder) AddDependency(dependencies ...string) Builder {
 
 	m := map[string]bool{}
 	for _, dep := range deps {
-		m[dep] = true
+		if !strings.HasPrefix(dep, ".") {
+			m[dep] = true
+		}
 	}
 
 	// Add new ones only if they are not already present
