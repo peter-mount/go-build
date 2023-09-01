@@ -9,6 +9,7 @@ type Target struct {
 	source       string   // Source file/directory
 	target       string   // target of the rule, defaults to directory
 	dependencies []string // Dependencies specific to this target
+	phony        bool     // true to mark target with .PHONY
 
 	children  []*Target // Dependencies in addition to the implicit ones
 	TargetDir string    // Target directory, used for Target if it's not defined
@@ -28,7 +29,18 @@ func (t *Target) Add(cmd makefile.Handler) {
 	t.commands = append(t.commands, cmd)
 }
 
+func (t *Target) Phony() *Target {
+	t.phony = true
+	return t
+}
+
 func (t *Target) Build(b makefile.Builder) makefile.Builder {
+
+	// Mark the target as phony
+	if t.phony {
+		b.Phony(t.target)
+	}
+
 	// Create the Rule and add its dependencies
 	r := b.Rule(t.target, t.dependencies...)
 
@@ -45,11 +57,19 @@ func (t *Target) Build(b makefile.Builder) makefile.Builder {
 	return r
 }
 
-func (b *builder) Target(target string, dependencies ...string) Builder {
-	return b.add(&Target{
+func (b *builder) newTarget(target string, dependencies []string) *Target {
+	return &Target{
 		target:       target,
 		dependencies: dependencies,
-	})
+	}
+}
+
+func (b *builder) Target(target string, dependencies ...string) Builder {
+	return b.add(b.newTarget(target, dependencies))
+}
+
+func (b *builder) PhonyTarget(target string, dependencies ...string) Builder {
+	return b.add(b.newTarget(target, dependencies).Phony())
 }
 
 func (b *builder) GetNamedTarget(target string) *Target {

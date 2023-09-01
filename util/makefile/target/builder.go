@@ -14,6 +14,7 @@ type Builder interface {
 
 	// Target adds a new target that will invoke the builder
 	Target(target string, dependencies ...string) Builder
+	PhonyTarget(target string, dependencies ...string) Builder
 
 	// GetTarget returns the current Target
 	GetTarget() *Target
