@@ -175,8 +175,10 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 	}
 
 	// Add any documentation
-	docsTarget := rootTarget.New().Target("docs")
-	s.documentation.Do(docsTarget, meta)
+	docsBuilder := rootTarget.New()
+	s.documentation.Do(docsBuilder, meta)
+	docsTarget := root.Rule("docs")
+	docsBuilder.Build(docsTarget)
 
 	if err := os.MkdirAll(filepath.Dir(*s.Dest), 0755); err != nil {
 		return err
