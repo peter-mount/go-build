@@ -25,6 +25,8 @@ type Builder interface {
 	Echo(label, format string, args ...any) Builder
 	Line(format string, args ...any) Builder
 	MkDir(path string) Builder
+
+	RootTarget() Builder
 }
 
 type builder struct {
@@ -88,4 +90,12 @@ func (b *builder) End() Builder {
 
 func (b *builder) GetTarget() *Target {
 	return b.target
+}
+
+func (b *builder) RootTarget() Builder {
+	root := b
+	for root.parent != nil {
+		root = root.parent
+	}
+	return root
 }
