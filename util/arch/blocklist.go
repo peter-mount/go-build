@@ -10,6 +10,13 @@ var (
 		// https://github.com/peter-mount/go-build/issues/1 & https://github.com/peter-mount/piweather.center/issues/1
 		// due to https://github.com/golang/go/issues/58240
 		{GOOS: "openbsd", GOARCH: "mips64"},
+		// 2024-01-24 block these for now as no serial support, enable once figure out a way for conditional tool compilation
+		{GOOS: "aix"},
+		{GOOS: "dragonfly"},
+		{GOOS: "illumos"},
+		{GOOS: "netbsd"},
+		{GOOS: "plan9"},
+		{GOOS: "solaris"},
 	}
 )
 
