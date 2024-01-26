@@ -22,6 +22,8 @@ var (
 )
 
 type BlockList struct {
+	// Replace the built-in list
+	Replace bool `yaml:"replace"`
 	// Architectures to block
 	Block []BlockArch `yaml:"block"`
 	// Tools to block
@@ -29,7 +31,7 @@ type BlockList struct {
 }
 
 func (a *BlockList) Merge(b *BlockList) *BlockList {
-	if a == nil {
+	if a == nil || b.Replace {
 		return b
 	}
 
