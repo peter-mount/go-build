@@ -22,6 +22,7 @@ type Build struct {
 	Dest             *string          `kernel:"flag,build,generate build files"`
 	Platforms        *string          `kernel:"flag,build-platform,platform(s) to build"`
 	Dist             *string          `kernel:"flag,dist,distribution destination"`
+	BlockList        *string          `kernel:"flag,block,block list"`
 	libProviders     []LibProvider    // Deprecated
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
@@ -52,6 +53,12 @@ func (s *Build) Start() error {
 	// Set the clean directory list to include our defaults
 	s.AddCleanDirectory(*s.Encoder.Dest)
 	s.AddCleanDirectory(*s.Dist)
+
+	if *s.BlockList != "" {
+		if err := arch.LoadBlockList(*s.BlockList); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -151,7 +158,9 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 			// Put all tools under their own target
 			toolTarget := archTarget.Rule(arch.Target() + "_tools")
 			for _, tool := range tools {
-				s.goBuild(arch, toolTarget, tool, meta)
+				if !arch.IsToolBlocked(tool) {
+					s.goBuild(arch, toolTarget, tool, meta)
+				}
 			}
 
 			// Apply extensions
