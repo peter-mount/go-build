@@ -24,6 +24,7 @@ type Build struct {
 	Dist             *string          `kernel:"flag,dist,distribution destination"`
 	BlockList        *string          `kernel:"flag,block,block list"`
 	Parallelize      *bool            `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
+	ArchiveArtifacts *string          `kernel:"flag,build-archiveArtifacts,archive files on completion"`
 	libProviders     []LibProvider    // Deprecated
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
@@ -444,6 +445,12 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 	// Sort stages so they are in sequence
 	for _, s1 := range stages {
 		s1.builder.Sort()
+	}
+
+	// Add archiveArtifacts stage
+	if *s.ArchiveArtifacts != "" {
+		node.Stage("archiveArtifacts").
+			ArchiveArtifacts(*s.ArchiveArtifacts)
 	}
 
 	return os.WriteFile("Jenkinsfile", []byte(builder.Build()), 0644)

@@ -20,6 +20,7 @@ type Builder interface {
 	Node(string) Builder
 	Stage(string) Builder
 	Sh(string, ...any) Builder
+	ArchiveArtifacts(f string, a ...any) Builder
 	Parallel() Builder
 
 	Sort() Builder
@@ -162,6 +163,10 @@ func (b *builder) Stage(s string) Builder {
 
 func (b *builder) Sh(f string, a ...any) Builder {
 	return b.Line("sh '"+f+"'", a...)
+}
+
+func (b *builder) ArchiveArtifacts(f string, a ...any) Builder {
+	return b.Line("archiveArtifacts artifacts: '"+f+"'", a...)
 }
 
 func (b *builder) Parallel() Builder {
