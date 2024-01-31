@@ -25,6 +25,7 @@ type Build struct {
 	BlockList        *string          `kernel:"flag,block,block list"`
 	Parallelize      *bool            `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
 	ArchiveArtifacts *string          `kernel:"flag,build-archiveArtifacts,archive files on completion"`
+	NoTools          *bool            `kernel:"flag,build-no-tools,set if no tools are defined"`
 	libProviders     []LibProvider    // Deprecated
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
@@ -118,7 +119,7 @@ func (s *Build) getTools() ([]string, error) {
 		return nil, err
 	}
 
-	if len(tools) == 0 {
+	if len(tools) == 0 && !*s.NoTools {
 		return nil, errors.New("no tools to compile")
 	}
 
