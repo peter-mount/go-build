@@ -23,6 +23,7 @@ type Build struct {
 	Platforms        *string          `kernel:"flag,build-platform,platform(s) to build"`
 	Dist             *string          `kernel:"flag,dist,distribution destination"`
 	BlockList        *string          `kernel:"flag,block,block list"`
+	Parallelize      *bool            `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
 	libProviders     []LibProvider    // Deprecated
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
@@ -409,43 +410,75 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 	// Map of stages -> arch -> steps
 	stages := make(map[string]*OsStage)
 	for _, arch := range arches {
-		stage := stages[arch.GOOS]
-		if stage == nil {
-			stage = &OsStage{
-				arch:     arch,
-				builder:  node.Stage(arch.GOOS).Parallel(),
-				children: make(map[string]*ArchStage),
+		if *s.Parallelize {
+			// The older version, create a stage per OS then an inner
+			// stage for each architecture which will be compiled in parallel
+			stage := stages[arch.GOOS]
+			if stage == nil {
+				stage = NewOsStage(node, arch, arch.GOOS)
+				stage.builder = stage.builder.Parallel()
 			}
-		}
-		stage1 := stage.children[arch.Arch()]
-		if stage1 == nil {
-			stage1 = &ArchStage{
-				arch:    arch,
-				builder: stage.builder.Stage(arch.Arch()),
+			stage1 := stage.add(node, arch, arch.Arch())
+			if stage1 == nil {
+				stage1 = &OsStage{
+					arch:    arch,
+					builder: stage.builder.Stage(arch.Arch()),
+				}
 			}
+			stage1.builder.Sh("make -f Makefile.gen " + arch.Target())
+
+			stages[arch.GOOS] = stage
+		} else {
+			// The new version unless overridden, run each OS/Arch as a
+			// stage in sequence
+			stage := stages[arch.Target()]
+			if stage == nil {
+				stage = NewOsStage(node, arch, arch.Target())
+			}
+			stage.builder.Sh("make -f Makefile.gen " + arch.Target())
+
+			stages[arch.Target()] = stage
 		}
-		stage1.builder.Sh("make -f Makefile.gen " + arch.Target())
-		stage.children[arch.Arch()] = stage1
-		stages[arch.GOOS] = stage
 	}
 
-	// Sort stages
+	// Sort stages so they are in sequence
 	for _, s1 := range stages {
 		s1.builder.Sort()
-		for _, s2 := range s1.children {
-			s2.builder.Sort()
-		}
 	}
 
 	return os.WriteFile("Jenkinsfile", []byte(builder.Build()), 0644)
 }
 
+func NewOsStage(node jenkinsfile.Builder, a arch.Arch, n string) *OsStage {
+	return &OsStage{
+		arch:    a,
+		builder: node.Stage(n),
+	}
+}
+
 type OsStage struct {
 	arch     arch.Arch
 	builder  jenkinsfile.Builder
-	children map[string]*ArchStage
+	children map[string]*OsStage
 }
-type ArchStage struct {
-	arch    arch.Arch
-	builder jenkinsfile.Builder
+
+func (s *OsStage) sort() {
+	s.builder.Sort()
+	if s.children != nil {
+		for _, c := range s.children {
+			c.sort()
+		}
+	}
+}
+
+func (s *OsStage) add(node jenkinsfile.Builder, a arch.Arch, n string) *OsStage {
+	if s.children == nil {
+		s.children = make(map[string]*OsStage)
+	}
+	if e, exists := s.children[n]; exists {
+		return e
+	}
+	c := NewOsStage(node, a, n)
+	s.children[n] = c
+	return c
 }
