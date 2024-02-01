@@ -8,6 +8,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -31,7 +32,22 @@ func (s *Zip) Start() error {
 }
 
 func (s *Zip) zip(archive, dir string) error {
+
+	// Check dir exists. If it doesn't then do nothing.
+	_, err := os.Stat(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
 	util.Label("DIST ZIP", "%s %s", archive, dir)
+
+	err = os.MkdirAll(filepath.Dir(archive), 0755)
+	if err != nil {
+		return err
+	}
 
 	f, err := os.Create(archive)
 	if err != nil {
@@ -59,7 +75,11 @@ func (s *Zip) zip(archive, dir string) error {
 				log.Println(name)
 			}
 
-			w, err := zw.Create(name)
+			w, err := zw.CreateHeader(&zip.FileHeader{
+				Name:     name,
+				Method:   zip.Deflate,
+				Modified: info.ModTime(),
+			})
 			if err != nil {
 				return err
 			}

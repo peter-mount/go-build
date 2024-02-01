@@ -293,7 +293,7 @@ func (s *Build) test(builder makefile.Builder) {
 }
 
 // Build a tool in go
-func (s *Build) goBuild(arch arch.Arch, target makefile.Builder, tool string, meta *meta.Meta) {
+func (s *Build) goBuild(arch arch.Arch, target makefile.Builder, tool string, _ *meta.Meta) {
 	dest := arch.Tool(*s.Encoder.Dest, tool)
 
 	rule := target.Rule(dest).
@@ -307,7 +307,7 @@ func (s *Build) goBuild(arch arch.Arch, target makefile.Builder, tool string, me
 }
 
 // Add rules for a LibProvider
-func (s *Build) libProvider(arch arch.Arch, target makefile.Builder, f LibProvider, meta *meta.Meta) {
+func (s *Build) libProvider(arch arch.Arch, target makefile.Builder, f LibProvider, _ *meta.Meta) {
 	dest, args := f(arch.BaseDir(*s.Encoder.Dest))
 	target.Rule(dest).
 		Echo("GENERATE", strings.Join(strings.Split(dest, "/")[1:], " ")).
@@ -321,8 +321,7 @@ func (s *Build) tar(arch arch.Arch, target makefile.Builder, meta *meta.Meta) {
 		fmt.Sprintf("%s_%s_%s_%s%s.tgz", meta.PackageName, meta.Version, arch.GOOS, arch.GOARCH, arch.GOARM),
 	)
 
-	rule := target.Rule(archive).
-		Mkdir(*s.Dist)
+	rule := target.Rule(archive)
 
 	s.callBuilder(rule, "tar", archive, arch.BaseDir(*s.Encoder.Dest))
 }
@@ -334,8 +333,7 @@ func (s *Build) zip(arch arch.Arch, target makefile.Builder, meta *meta.Meta) {
 		fmt.Sprintf("%s_%s_%s_%s%s.zip", meta.PackageName, meta.Version, arch.GOOS, arch.GOARCH, arch.GOARM),
 	)
 
-	rule := target.Rule(archive).
-		Mkdir(*s.Dist)
+	rule := target.Rule(archive)
 
 	s.callBuilder(rule, "zip", archive, arch.BaseDir(*s.Encoder.Dest))
 }

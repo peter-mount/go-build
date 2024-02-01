@@ -11,6 +11,7 @@ import (
 	"io"
 	"os"
 	"os/user"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -36,7 +37,22 @@ func (s *Tar) Start() error {
 }
 
 func (s *Tar) tar(archive, dir string) error {
+
+	// Check dir exists. If it doesn't then do nothing.
+	_, err := os.Stat(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
 	util.Label("DIST TAR", "%s %s", archive, dir)
+
+	err = os.MkdirAll(filepath.Dir(archive), 0755)
+	if err != nil {
+		return err
+	}
 
 	f, err := os.Create(archive)
 	if err != nil {
