@@ -56,6 +56,10 @@ func (s *Build) AddCleanDirectory(dir string) {
 	s.cleanDirectories.Sort()
 }
 
+func (s *Build) BuildArch() arch.Arch {
+	return s.buildArch
+}
+
 func (s *Build) Start() error {
 	// Set the build architecture
 	s.buildArch = arch.Arch{
