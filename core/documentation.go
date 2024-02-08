@@ -16,19 +16,6 @@ func (a Documentation) Do(root makefile.Builder, target target.Builder, meta *me
 	}
 }
 
-func (a Documentation) Then(b Documentation) Documentation {
-	if a == nil {
-		return b
-	}
-	if b == nil {
-		return a
-	}
-	return func(root makefile.Builder, target target.Builder, meta *meta.Meta) {
-		a(root, target, meta)
-		b(root, target, meta)
-	}
-}
-
 type DocumentationList []documentationEntry
 
 type documentationEntry struct {

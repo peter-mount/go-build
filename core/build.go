@@ -33,7 +33,7 @@ type Build struct {
 	extensions       Extension         // Extensions to run
 	documentation    DocumentationList // Documentation extensions to run
 	makefile         DocumentationList // Documentation at root level
-	jenkins          Jenkins           // Jenkins extensions
+	jenkins          JenkinsList       // Jenkins extensions
 	cleanDirectories sort.StringSlice  // Directories to clean other than builds and dist
 	buildArch        arch.Arch         // The build platform architecture
 }
@@ -502,7 +502,9 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 		}
 	}
 
-	s.jenkins.Do(builder, node)
+	s.jenkins.ForEach(func(e Jenkins) {
+		e.Do(builder, node)
+	})
 
 	// Add archiveArtifacts stage
 	if *s.ArchiveArtifacts != "" {
