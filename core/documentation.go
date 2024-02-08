@@ -48,7 +48,7 @@ func (l *DocumentationList) IsEmpty() bool {
 }
 
 func (l *DocumentationList) ForEach(f func(Documentation)) {
-	sort.SliceStable(l, func(i, j int) bool {
+	sort.SliceStable(*l, func(i, j int) bool {
 		return (*l)[i].seq < (*l)[j].seq
 	})
 
