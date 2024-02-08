@@ -430,7 +430,7 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 	if *s.BuildLocal {
 		// Build against the local platform only
 		node.Stage("Build").
-			Sh("make -f Makefile.gen " + s.buildArch.Target())
+			Sh("make -f Makefile.gen all")
 	} else {
 		// Cross Build against the supported/requested platforms
 		// Map of stages -> arch -> steps
