@@ -3,6 +3,7 @@ package arch
 import (
 	"gopkg.in/yaml.v2"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -127,6 +128,7 @@ func equalsOptional(a, b string) bool {
 	return a == "" || equals(a, b)
 }
 
+// LoadBlockList loads a block list from a file
 func LoadBlockList(n string) error {
 	b, err := os.ReadFile(n)
 	if err != nil {
@@ -142,4 +144,15 @@ func LoadBlockList(n string) error {
 	blockList = blockList.Merge(bl)
 
 	return nil
+}
+
+// BuildLocalPlatformOnly replaces any permit entry to be for the platform running the build.
+// Note: for arm this fails
+func BuildLocalPlatformOnly() {
+	blockList.Permit = BlockArchList{
+		BlockArch{
+			OS:   runtime.GOOS,
+			Arch: runtime.GOARCH,
+		},
+	}
 }

@@ -27,6 +27,7 @@ type Build struct {
 	Parallelize      *bool            `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
 	ArchiveArtifacts *string          `kernel:"flag,build-archiveArtifacts,archive files on completion"`
 	NoTools          *bool            `kernel:"flag,build-no-tools,set if no tools are defined"`
+	BuildLocal       *bool            `kernel:"flag,build-local,Build for local platform only"`
 	libProviders     []LibProvider    // Deprecated
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
@@ -63,6 +64,11 @@ func (s *Build) Start() error {
 			return err
 		}
 	}
+
+	if *s.BuildLocal {
+		arch.BuildLocalPlatformOnly()
+	}
+
 	return nil
 }
 
