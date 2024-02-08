@@ -410,7 +410,7 @@ func (s *Build) platformIndex(arches []arch.Arch) error {
 func (s *Build) addDocumentation(name string, docs Documentation, root makefile.Builder, meta *meta.Meta) {
 	if docs != nil {
 		docsBuilder := target.New()
-		s.documentation.Do(root, docsBuilder, meta)
+		docs.Do(root, docsBuilder, meta)
 		docsTarget := root
 		if name != "" {
 			root.Phony(name)
