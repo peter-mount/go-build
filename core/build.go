@@ -56,8 +56,14 @@ func (s *Build) AddCleanDirectory(dir string) {
 	s.cleanDirectories.Sort()
 }
 
+// BuildArch returns the arch.Arch the build is running under
 func (s *Build) BuildArch() arch.Arch {
 	return s.buildArch
+}
+
+// Tool returns the path to a built tool but specific to the architecture the build is running under.
+func (s *Build) Tool(n string) string {
+	return filepath.Join(*s.Encoder.Dest, "bin", n)
 }
 
 func (s *Build) Start() error {
