@@ -2,14 +2,13 @@ package core
 
 import (
 	"github.com/peter-mount/go-build/util/jenkinsfile"
-	"github.com/peter-mount/go-build/util/meta"
 )
 
-type Jenkins func(builder jenkinsfile.Builder, meta *meta.Meta)
+type Jenkins func(builder, node jenkinsfile.Builder)
 
-func (a Jenkins) Do(builder jenkinsfile.Builder, meta *meta.Meta) {
+func (a Jenkins) Do(builder, node jenkinsfile.Builder) {
 	if a != nil {
-		a(builder, meta)
+		a(builder, node)
 	}
 }
 
@@ -20,9 +19,9 @@ func (a Jenkins) Then(b Jenkins) Jenkins {
 	if b == nil {
 		return a
 	}
-	return func(builder jenkinsfile.Builder, meta *meta.Meta) {
-		a(builder, meta)
-		b(builder, meta)
+	return func(builder, node jenkinsfile.Builder) {
+		a(builder, node)
+		b(builder, node)
 	}
 }
 

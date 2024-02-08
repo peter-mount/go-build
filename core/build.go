@@ -490,6 +490,8 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 		}
 	}
 
+	s.jenkins.Do(builder, node)
+
 	// Add archiveArtifacts stage
 	if *s.ArchiveArtifacts != "" {
 		node.Stage("archiveArtifacts").
