@@ -25,9 +25,12 @@ type BlockList struct {
 	// Replace the built-in list
 	Replace bool `yaml:"replace"`
 	// Architectures to block
-	Block []BlockArch `yaml:"block"`
+	Block BlockArchList `yaml:"block"`
 	// Tools to block
-	Tools map[string][]BlockArch `yaml:"tools"`
+	Tools map[string]BlockArchList `yaml:"tools"`
+	// Architectures to build.
+	// If this is set then this will effectively block all other architectures
+	Permit BlockArchList `yaml:"permit"`
 }
 
 func (a *BlockList) Merge(b *BlockList) *BlockList {
@@ -36,18 +39,23 @@ func (a *BlockList) Merge(b *BlockList) *BlockList {
 	}
 
 	a.Block = merge(a.Block, b.Block)
+
 	if len(b.Tools) > 0 {
 		if len(a.Tools) == 0 {
-			a.Tools = make(map[string][]BlockArch)
+			a.Tools = make(map[string]BlockArchList)
 		}
 		for k, e := range b.Tools {
 			a.Tools[k] = merge(a.Tools[k], e)
 		}
 	}
+
+	a.Permit = merge(a.Permit, b.Permit)
 	return a
 }
 
-func contains(a []BlockArch, b BlockArch) bool {
+type BlockArchList []BlockArch
+
+func (a BlockArchList) contains(b BlockArch) bool {
 	for _, e := range a {
 		if e.Equals(b) {
 			return true
@@ -56,13 +64,23 @@ func contains(a []BlockArch, b BlockArch) bool {
 	return false
 }
 
-func merge(a, b []BlockArch) []BlockArch {
+func merge(a, b BlockArchList) BlockArchList {
 	for _, e := range b {
-		if !contains(a, e) {
+		if !a.contains(e) {
 			a = append(a, e)
 		}
 	}
 	return a
+}
+
+func (a BlockArchList) isArchBlocked(arch Arch) bool {
+	for _, e := range a {
+		if equals(e.OS, arch.GOOS) && equalsOptional(e.Arch, arch.GOARCH) {
+			return true
+		}
+	}
+
+	return false
 }
 
 type BlockArch struct {
@@ -79,7 +97,13 @@ func (a Arch) IsBlocked() bool {
 	if blockList == nil {
 		return false
 	}
-	return isArchBlocked(blockList.Block, a)
+
+	// Permit list overrides blockList
+	if len(blockList.Permit) > 0 {
+		return !blockList.Permit.isArchBlocked(a)
+	}
+
+	return blockList.Block.isArchBlocked(a)
 }
 
 func (a Arch) IsToolBlocked(tool string) bool {
@@ -89,17 +113,7 @@ func (a Arch) IsToolBlocked(tool string) bool {
 
 	toolArch, exists := blockList.Tools[strings.ToLower(tool)]
 	if exists {
-		return isArchBlocked(toolArch, a)
-	}
-
-	return false
-}
-
-func isArchBlocked(a []BlockArch, arch Arch) bool {
-	for _, e := range a {
-		if equals(e.OS, arch.GOOS) && equalsOptional(e.Arch, arch.GOARCH) {
-			return true
-		}
+		return toolArch.isArchBlocked(a)
 	}
 
 	return false
