@@ -19,23 +19,23 @@ import (
 )
 
 type Build struct {
-	Encoder          *Encoder         `kernel:"inject"`
-	Dest             *string          `kernel:"flag,build,generate build files"`
-	Platforms        *string          `kernel:"flag,build-platform,platform(s) to build"`
-	Dist             *string          `kernel:"flag,dist,distribution destination"`
-	BlockList        *string          `kernel:"flag,block,block list"`
-	BuildNode        *string          `kernel:"flag,build-node,Jenkins node to run on,go"`
-	Parallelize      *bool            `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
-	ArchiveArtifacts *string          `kernel:"flag,build-archiveArtifacts,archive files on completion"`
-	NoTools          *bool            `kernel:"flag,build-no-tools,set if no tools are defined"`
-	BuildLocal       *bool            `kernel:"flag,build-local,Build for local platform only"`
-	libProviders     []LibProvider    // Deprecated
-	extensions       Extension        // Extensions to run
-	documentation    Documentation    // Documentation extensions to run
-	makefile         Documentation    // Documentation at root level
-	jenkins          Jenkins          // Jenkins extensions
-	cleanDirectories sort.StringSlice // Directories to clean other than builds and dist
-	buildArch        arch.Arch        // The build platform architecture
+	Encoder          *Encoder          `kernel:"inject"`
+	Dest             *string           `kernel:"flag,build,generate build files"`
+	Platforms        *string           `kernel:"flag,build-platform,platform(s) to build"`
+	Dist             *string           `kernel:"flag,dist,distribution destination"`
+	BlockList        *string           `kernel:"flag,block,block list"`
+	BuildNode        *string           `kernel:"flag,build-node,Jenkins node to run on,go"`
+	Parallelize      *bool             `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
+	ArchiveArtifacts *string           `kernel:"flag,build-archiveArtifacts,archive files on completion"`
+	NoTools          *bool             `kernel:"flag,build-no-tools,set if no tools are defined"`
+	BuildLocal       *bool             `kernel:"flag,build-local,Build for local platform only"`
+	libProviders     []LibProvider     // Deprecated
+	extensions       Extension         // Extensions to run
+	documentation    DocumentationList // Documentation extensions to run
+	makefile         DocumentationList // Documentation at root level
+	jenkins          Jenkins           // Jenkins extensions
+	cleanDirectories sort.StringSlice  // Directories to clean other than builds and dist
+	buildArch        arch.Arch         // The build platform architecture
 }
 
 // LibProvider handles calls to generate additional files/directories in a build
@@ -407,17 +407,22 @@ func (s *Build) platformIndex(arches []arch.Arch) error {
 	return os.WriteFile("platforms.md", []byte(strings.Join(a, "\n")), 0644)
 }
 
-func (s *Build) addDocumentation(name string, docs Documentation, root makefile.Builder, meta *meta.Meta) {
-	if docs != nil {
-		docsBuilder := target.New()
-		docs.Do(root, docsBuilder, meta)
-		docsTarget := root
-		if name != "" {
-			root.Phony(name)
-			docsTarget = root.Rule(name)
-		}
-		docsBuilder.Build(docsTarget)
+func (s *Build) addDocumentation(name string, docs DocumentationList, root makefile.Builder, meta *meta.Meta) {
+	if docs.IsEmpty() {
+		return
 	}
+
+	docsBuilder := target.New()
+	docs.ForEach(func(doc Documentation) {
+		doc.Do(root, docsBuilder, meta)
+	})
+
+	docsTarget := root
+	if name != "" {
+		root.Phony(name)
+		docsTarget = root.Rule(name)
+	}
+	docsBuilder.Build(docsTarget)
 }
 
 func (s *Build) jenkinsfile(arches []arch.Arch) error {
