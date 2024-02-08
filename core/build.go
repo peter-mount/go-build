@@ -33,6 +33,7 @@ type Build struct {
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
 	cleanDirectories sort.StringSlice // Directories to clean other than builds and dist
+	buildArch        arch.Arch        // The build platform architecture
 }
 
 // LibProvider handles calls to generate additional files/directories in a build
@@ -56,18 +57,19 @@ func (s *Build) AddCleanDirectory(dir string) {
 }
 
 func (s *Build) Start() error {
+	// Set the build architecture
+	s.buildArch = arch.Arch{
+		GOOS:   runtime.GOOS,
+		GOARCH: runtime.GOARCH,
+	}
+
 	// Set the clean directory list to include our defaults
 	s.AddCleanDirectory(*s.Encoder.Dest)
 	s.AddCleanDirectory(*s.Dist)
-
 	if *s.BlockList != "" {
 		if err := arch.LoadBlockList(*s.BlockList); err != nil {
 			return err
 		}
-	}
-
-	if *s.BuildLocal {
-		arch.BuildLocalPlatformOnly()
 	}
 
 	return nil
@@ -194,6 +196,12 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 		}
 	}
 
+	// BuildLocal then all should start with the build platform only
+	if *s.BuildLocal {
+		root.RemoveDependencies().
+			AddDependency(s.buildArch.Target())
+	}
+
 	// Add any documentation
 	docsBuilder := rootTarget.New()
 	s.documentation.Do(docsBuilder, meta)
@@ -229,6 +237,7 @@ func (s *Build) allRule(arches []arch.Arch, builder makefile.Builder) (makefile.
 	// If all is still empty then return it so the Operating System rules
 	// will get added to it automatically
 	if all.IsEmptyRule() {
+		// In build local mode, add the local platform only to the build
 		return all, platforms
 	}
 
@@ -418,22 +427,15 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 	node.Stage("Test").
 		Sh("make test")
 
-	// Map of stages -> arch -> steps
-	stages := make(map[string]*OsStage)
-
 	if *s.BuildLocal {
 		// Build against the local platform only
-		arch := arch.Arch{
-			GOOS:   runtime.GOOS,
-			GOARCH: runtime.GOARCH,
-		}
-
-		targetName := "Build"
-		stage := NewOsStage(node, arch, targetName)
-		stage.builder.Sh("make -f Makefile.gen " + arch.Target())
-		stages[targetName] = stage
+		node.Stage("Build").
+			Sh("make -f Makefile.gen " + s.buildArch.Target())
 	} else {
 		// Cross Build against the supported/requested platforms
+		// Map of stages -> arch -> steps
+		stages := make(map[string]*OsStage)
+
 		for _, arch := range arches {
 			if *s.Parallelize {
 				// The older version, create a stage per OS then an inner
@@ -465,11 +467,11 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 				stages[arch.Target()] = stage
 			}
 		}
-	}
 
-	// Sort stages so they are in sequence
-	for _, s1 := range stages {
-		s1.builder.Sort()
+		// Sort stages so they are in sequence
+		for _, s1 := range stages {
+			s1.builder.Sort()
+		}
 	}
 
 	// Add archiveArtifacts stage

@@ -26,6 +26,7 @@ type Builder interface {
 	Build() string
 
 	AddDependency(...string) Builder
+	RemoveDependencies() Builder
 	Add(Handler) Builder
 
 	IsBlank() bool
@@ -265,6 +266,14 @@ func (b *builder) AddDependency(dependencies ...string) Builder {
 	}
 
 	b.line = strings.TrimSpace(strings.Join(deps, " "))
+	return b
+}
+
+func (b *builder) RemoveDependencies() Builder {
+	if !b.IsRule() {
+		panic("not a rule")
+	}
+	b.line = ""
 	return b
 }
 
