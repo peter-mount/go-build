@@ -32,6 +32,7 @@ type Build struct {
 	libProviders     []LibProvider    // Deprecated
 	extensions       Extension        // Extensions to run
 	documentation    Documentation    // Documentation extensions to run
+	makefile         Documentation    // Documentation at root level
 	jenkins          Jenkins          // Jenkins extensions
 	cleanDirectories sort.StringSlice // Directories to clean other than builds and dist
 	buildArch        arch.Arch        // The build platform architecture
@@ -215,6 +216,9 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 
 	// Add any documentation
 	s.addDocumentation("docs", s.documentation, builder, meta)
+
+	// Any custom makefile entries
+	s.addDocumentation("", s.makefile, builder, meta)
 
 	if err := os.MkdirAll(filepath.Dir(*s.Dest), 0755); err != nil {
 		return err
@@ -406,9 +410,12 @@ func (s *Build) platformIndex(arches []arch.Arch) error {
 func (s *Build) addDocumentation(name string, docs Documentation, root makefile.Builder, meta *meta.Meta) {
 	if docs != nil {
 		docsBuilder := target.New()
-		s.documentation.Do(docsBuilder, meta)
-		root.Phony(name)
-		docsTarget := root.Rule(name)
+		s.documentation.Do(root, docsBuilder, meta)
+		docsTarget := root
+		if name != "" {
+			root.Phony(name)
+			docsTarget = root.Rule(name)
+		}
 		docsBuilder.Build(docsTarget)
 	}
 }
