@@ -13,6 +13,7 @@ import (
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"os"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 )
@@ -412,39 +413,57 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 		Line("checkout scm")
 
 	node.Stage("Init").
-		Sh("make clean init test")
+		Sh("make clean init")
+
+	node.Stage("Test").
+		Sh("make test")
 
 	// Map of stages -> arch -> steps
 	stages := make(map[string]*OsStage)
-	for _, arch := range arches {
-		if *s.Parallelize {
-			// The older version, create a stage per OS then an inner
-			// stage for each architecture which will be compiled in parallel
-			stage := stages[arch.GOOS]
-			if stage == nil {
-				stage = NewOsStage(node, arch, arch.GOOS)
-				stage.builder = stage.builder.Parallel()
-			}
-			stage1 := stage.add(node, arch, arch.Arch())
-			if stage1 == nil {
-				stage1 = &OsStage{
-					arch:    arch,
-					builder: stage.builder.Stage(arch.Arch()),
+
+	if *s.BuildLocal {
+		// Build against the local platform only
+		arch := arch.Arch{
+			GOOS:   runtime.GOOS,
+			GOARCH: runtime.GOARCH,
+		}
+
+		targetName := "Build"
+		stage := NewOsStage(node, arch, targetName)
+		stage.builder.Sh("make -f Makefile.gen " + arch.Target())
+		stages[targetName] = stage
+	} else {
+		// Cross Build against the supported/requested platforms
+		for _, arch := range arches {
+			if *s.Parallelize {
+				// The older version, create a stage per OS then an inner
+				// stage for each architecture which will be compiled in parallel
+				stage := stages[arch.GOOS]
+				if stage == nil {
+					stage = NewOsStage(node, arch, arch.GOOS)
+					stage.builder = stage.builder.Parallel()
 				}
-			}
-			stage1.builder.Sh("make -f Makefile.gen " + arch.Target())
+				stage1 := stage.add(node, arch, arch.Arch())
+				if stage1 == nil {
+					stage1 = &OsStage{
+						arch:    arch,
+						builder: stage.builder.Stage(arch.Arch()),
+					}
+				}
+				stage1.builder.Sh("make -f Makefile.gen " + arch.Target())
 
-			stages[arch.GOOS] = stage
-		} else {
-			// The new version unless overridden, run each OS/Arch as a
-			// stage in sequence
-			stage := stages[arch.Target()]
-			if stage == nil {
-				stage = NewOsStage(node, arch, arch.Target())
-			}
-			stage.builder.Sh("make -f Makefile.gen " + arch.Target())
+				stages[arch.GOOS] = stage
+			} else {
+				// The new version unless overridden, run each OS/Arch as a
+				// stage in sequence
+				stage := stages[arch.Target()]
+				if stage == nil {
+					stage = NewOsStage(node, arch, arch.Target())
+				}
+				stage.builder.Sh("make -f Makefile.gen " + arch.Target())
 
-			stages[arch.Target()] = stage
+				stages[arch.Target()] = stage
+			}
 		}
 	}
 
