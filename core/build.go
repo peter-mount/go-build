@@ -23,6 +23,7 @@ type Build struct {
 	Platforms        *string          `kernel:"flag,build-platform,platform(s) to build"`
 	Dist             *string          `kernel:"flag,dist,distribution destination"`
 	BlockList        *string          `kernel:"flag,block,block list"`
+	BuildNode        *string          `kernel:"flag,build-node,Jenkins node to run on,go"`
 	Parallelize      *bool            `kernel:"flag,build-parallel,parallelize Jenkinsfile"`
 	ArchiveArtifacts *string          `kernel:"flag,build-archiveArtifacts,archive files on completion"`
 	NoTools          *bool            `kernel:"flag,build-no-tools,set if no tools are defined"`
@@ -399,7 +400,7 @@ func (s *Build) jenkinsfile(arches []arch.Arch) error {
 		Begin("pipelineTriggers([").
 		Simple("cron", `"H H * * *"`)
 
-	node := builder.Node("go")
+	node := builder.Node(*s.BuildNode)
 
 	node.Stage("Checkout").
 		Line("checkout scm")
