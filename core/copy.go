@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
 	"os"
 	"path/filepath"
@@ -33,7 +34,7 @@ func (s *Copy) copyFile() error {
 		return err
 	}
 
-	return copyFileWithTimes(*s.CopyFile, *s.Encoder.Dest, info)
+	return util.CopyFile(*s.CopyFile, *s.Encoder.Dest, info)
 }
 
 func (s *Copy) copyDir(path string, info os.FileInfo) error {
@@ -49,24 +50,5 @@ func (s *Copy) copyDir(path string, info os.FileInfo) error {
 		return os.MkdirAll(dstName, info.Mode())
 	}
 
-	return copyFileWithTimes(path, dstName, info)
-}
-
-func copyFileByName(path string, dstName string, info os.FileInfo) error {
-	dstFile, err := os.OpenFile(dstName, os.O_RDWR|os.O_CREATE|os.O_TRUNC, info.Mode())
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-	return copyFile(path, dstFile)
-}
-
-func copyFileWithTimes(path string, dstName string, info os.FileInfo) error {
-	err := copyFileByName(path, dstName, info)
-	if err == nil {
-		t := info.ModTime()
-		// Note: Don't care if this fails, e.g. some file systems do not allow this
-		_ = os.Chtimes(dstName, t, t)
-	}
-	return err
+	return util.CopyFile(path, dstName, info)
 }

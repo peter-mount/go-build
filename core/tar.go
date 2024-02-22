@@ -8,7 +8,6 @@ import (
 	"github.com/peter-mount/go-build/util"
 	"github.com/peter-mount/go-kernel/v2/log"
 	"github.com/peter-mount/go-kernel/v2/util/walk"
-	"io"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -120,22 +119,10 @@ func (s *Tar) tar(archive, dir string) error {
 			}
 
 			if !info.IsDir() {
-				err = copyFile(path, tw)
+				err = util.CopyToWriter(path, tw)
 			}
 
 			return err
 		}).
 		Walk(dir)
-}
-
-func copyFile(path string, w io.Writer) error {
-
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	_, err = io.Copy(w, f)
-	return err
 }

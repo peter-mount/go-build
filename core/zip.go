@@ -85,7 +85,7 @@ func (s *Zip) zip(archive, dir string) error {
 			}
 
 			if !info.IsDir() {
-				err = copyFile(path, w)
+				err = util.CopyToWriter(path, w)
 			}
 
 			return err

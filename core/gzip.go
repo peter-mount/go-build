@@ -2,6 +2,7 @@ package core
 
 import (
 	"compress/gzip"
+	"github.com/peter-mount/go-build/util"
 	"io"
 	"os"
 )
@@ -20,6 +21,11 @@ func (s *GZip) Start() error {
 }
 
 func (s *GZip) gunzip() error {
+	info, err := os.Stat(*s.Gunzip)
+	if err != nil {
+		return err
+	}
+
 	srcF, err := os.Open(*s.Gunzip)
 	if err != nil {
 		return err
@@ -32,15 +38,7 @@ func (s *GZip) gunzip() error {
 	}
 	defer gr.Close()
 
-	destF, err := os.Create(*s.Encoder.Dest)
-	if err != nil {
-		return err
-	}
-	defer destF.Close()
-
-	_, err = io.Copy(destF, gr)
-
-	return err
+	return util.CopyFromReader(gr, *s.Encoder.Dest, info)
 }
 
 func (s *GZip) gzip() error {
