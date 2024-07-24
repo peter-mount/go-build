@@ -12,5 +12,6 @@ func init() {
 		&GZip{},
 		&Tar{},
 		&Zip{},
+		&Apt{},
 	)
 }
