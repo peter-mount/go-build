@@ -71,7 +71,7 @@ func (s *Apt) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) 
 	// Apt package to generate
 	aptName := s.config.Package.AptName(arch.Arch())
 	destDir := filepath.Join(*s.Encoder.Dest, "apt", aptName)
-	debName := destDir + ".deb"
+	debName := filepath.Join(*s.Build.Dist, aptName+".deb")
 
 	// Generate copy for deployment
 	meta.DistTarget.
