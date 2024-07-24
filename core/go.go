@@ -101,7 +101,7 @@ func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 
 		args = append(args,
 			fmt.Sprintf(
-				`-ldflags=-X 'github.com/peter-mount/go-build/version.Version=%s (%s %s %s %s %s)'`,
+				`-ldflags=-X 'github.com/peter-mount/go-build/version.Version=%s (%s %s %s %s %s)' -s -w`,
 				tool,
 				buildVersion,
 				goos, goarch+goarm,
