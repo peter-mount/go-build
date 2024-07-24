@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"github.com/peter-mount/go-build/util"
+	"github.com/peter-mount/go-build/util/makefile"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,6 +20,7 @@ type Meta struct {
 	Time          string // Time of build
 	Uid           string // Userid or "N/A" if not available
 	Version       string
+	ArchTarget    makefile.Builder
 }
 
 func New() (*Meta, error) {

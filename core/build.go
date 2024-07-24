@@ -177,6 +177,8 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 
 	for _, arch := range arches {
 		archTarget := targetGroups.Get(arch.Target())
+		meta.ArchTarget = archTarget
+
 		// Generate targets if all platforms or just the requested ones
 		if allPlatforms || platforms[arch.Target()] {
 
