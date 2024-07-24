@@ -75,13 +75,13 @@ func (s *Apt) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) 
 
 	// Generate copy for deployment
 	meta.DistTarget.
-		Rule(debName, arch.Target()+"_dist").
+		Rule(debName).
 		Echo("DIST APT", debName).
-		Line("@$(BUILD)",
-			"-apt", debName,
-			"-apt-src", arch.BaseDir(*s.Encoder.Dest),
-			"-build-platform", arch.Platform(),
-			"-d", destDir)
+		Line("$(BUILD) -apt %s -apt-src %s -build-platform %s -d %s",
+			debName,
+			arch.BaseDir(*s.Encoder.Dest),
+			arch.Platform(),
+			destDir)
 
 	// Add apt rule which depends on dist & the deb file(s)
 	meta.ArchTarget.Rule(arch.Target()+"_apt", arch.Target()+"_dist", debName)
