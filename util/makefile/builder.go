@@ -188,7 +188,7 @@ func (b *builder) Line(f string, a ...any) Builder {
 }
 
 func (b *builder) Echo(n string, f string, a ...any) Builder {
-	return b.Line(fmt.Sprintf(`@echo "%-8s %s";\`, n, fmt.Sprintf(f, a...)))
+	return b.Line(fmt.Sprintf(`@echo "%-10s %s";\`, n, fmt.Sprintf(f, a...)))
 }
 
 func (b *builder) Mkdir(dirs ...string) Builder {
