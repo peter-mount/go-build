@@ -21,6 +21,7 @@ type Meta struct {
 	Uid           string // Userid or "N/A" if not available
 	Version       string
 	ArchTarget    makefile.Builder
+	DistTarget    makefile.Builder
 }
 
 func New() (*Meta, error) {

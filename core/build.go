@@ -181,9 +181,12 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 
 		// Generate targets if all platforms or just the requested ones
 		if allPlatforms || platforms[arch.Target()] {
+			toolTarget := archTarget.Rule(arch.Target() + "_tools")
+			extTarget := archTarget.Rule(arch.Target() + "_ext")
+			distTarget := archTarget.Rule(arch.Target() + "_dist")
+			meta.DistTarget = distTarget
 
 			// Put all tools under their own target
-			toolTarget := archTarget.Rule(arch.Target() + "_tools")
 			for _, tool := range tools {
 				if !arch.IsToolBlocked(tool) {
 					s.goBuild(arch, toolTarget, tool, meta)
@@ -191,7 +194,6 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 			}
 
 			// Apply extensions
-			extTarget := archTarget.Rule(arch.Target() + "_ext")
 			targetBuilder := rootTarget.New()
 			s.extensions.Do(arch, targetBuilder, meta)
 			targetBuilder.Build(extTarget)
@@ -201,7 +203,6 @@ func (s *Build) generate(tools []string, arches []arch.Arch, meta *meta.Meta) er
 			}
 
 			// Put dist under its own target
-			distTarget := archTarget.Rule(arch.Target() + "_dist")
 			if arch.IsWindows() {
 				s.zip(arch, distTarget, meta)
 			} else {
@@ -342,6 +343,8 @@ func (s *Build) libProvider(arch arch.Arch, target makefile.Builder, f LibProvid
 		Echo("GENERATE", strings.Join(strings.Split(dest, "/")[1:], " ")).
 		Line("$(BUILD) -d %s %s", dest, strings.Join(args, " "))
 }
+
+// Add rule for a deb distribution
 
 // Add rule for a tar distribution
 func (s *Build) tar(arch arch.Arch, target makefile.Builder, meta *meta.Meta) {

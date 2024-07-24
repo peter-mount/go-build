@@ -74,13 +74,10 @@ func (s *Apt) extension(arch arch.Arch, target target.Builder, meta *meta.Meta) 
 	debName := destDir + ".deb"
 
 	// Generate copy for deployment
-	target.
-		Target(debName, arch.Target()+"_dist").
-		//MkDir(destDir).
-		//Echo("INSTALL", destDir).
-		//BuildTool("-copydir", arch.BaseDir(*s.Encoder.Dest), "-d", filepath.Join(destDir, "usr/local", config.Package.Name)).
+	meta.DistTarget.
+		Rule(debName, arch.Target()+"_dist").
 		Echo("DIST APT", debName).
-		BuildTool(
+		Line("@$(BUILD)",
 			"-apt", debName,
 			"-apt-src", arch.BaseDir(*s.Encoder.Dest),
 			"-build-platform", arch.Platform(),
