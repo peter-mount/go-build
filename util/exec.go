@@ -7,7 +7,7 @@ import (
 )
 
 func Label(label, f string, a ...any) {
-	fmt.Printf("%-8s ", label)
+	fmt.Printf("%-10s ", label)
 	fmt.Printf(f, a...)
 	fmt.Println()
 }
