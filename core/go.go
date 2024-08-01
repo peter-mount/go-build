@@ -86,6 +86,10 @@ func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 	var args []string
 	args = append(args, "build")
 
+	// ldFlags
+	var ldFlags []string
+
+	// Set Version if we have BUILD_VERSION and BUILD_TIME in the environment
 	buildVersion := getEnv("BUILD_VERSION")
 	buildTime := getEnv("BUILD_TIME")
 	if buildVersion != "" && buildTime != "" {
@@ -99,9 +103,10 @@ func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 			}
 		}
 
-		args = append(args,
+		// Version based on the tool definitions
+		ldFlags = append(ldFlags,
 			fmt.Sprintf(
-				`-ldflags=-X 'github.com/peter-mount/go-build/version.Version=%s (%s %s %s %s %s)' -s -w`,
+				`-X 'github.com/peter-mount/go-build/version.Version=%s (%s %s %s %s %s)'`,
 				tool,
 				buildVersion,
 				goos, goarch+goarm,
@@ -109,6 +114,24 @@ func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 				buildTime,
 			))
 	}
+
+	// Set application name if APPLICATION_NAME is in the environment
+	applicationName := getEnv("APPLICATION_NAME")
+	if applicationName != "" {
+		ldFlags = append(ldFlags,
+			fmt.Sprintf(
+				`-X 'github.com/peter-mount/go-build/version.Application=%s'`,
+				tool,
+			))
+	}
+
+	// Default ldFlags
+	ldFlags = append(ldFlags,
+		"-s", // Disable symbol table
+		"-w", // Disable DWARF generation
+	)
+
+	args = append(args, "-ldflags=\""+strings.Join(ldFlags, " ")+"\"")
 
 	args = append(args, "-o", dst, src)
 
