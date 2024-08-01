@@ -131,7 +131,7 @@ func (s *Go) buildTool(goos, goarch, goarm, tool string) error {
 		"-w", // Disable DWARF generation
 	)
 
-	args = append(args, "-ldflags=\""+strings.Join(ldFlags, " ")+"\"")
+	args = append(args, "-ldflags="+strings.Join(ldFlags, " "))
 
 	args = append(args, "-o", dst, src)
 
