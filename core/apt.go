@@ -22,6 +22,7 @@ type Apt struct {
 }
 
 type Config struct {
+	Disable bool    `yaml:"disable"`
 	Package Package `yaml:"package"`
 	Lintian bool    `yaml:"lintian"`
 }
@@ -46,11 +47,14 @@ func (s *Apt) Start() error {
 		return err
 	}
 
-	s.Build.AddExtension(s.extension)
+	if !s.config.Disable {
+		s.Build.AddExtension(s.extension)
 
-	if *s.Apt != "" {
-		return s.run()
+		if *s.Apt != "" {
+			return s.run()
+		}
 	}
+
 	return nil
 }
 
